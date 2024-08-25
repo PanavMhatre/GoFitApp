@@ -168,5 +168,38 @@ public class ActivityProfile extends AppCompatActivity {
         super.finish();
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==REQUEST_CODE_IMAGE&&data!=null){
+            imageUri=data.getData();
+            isImageAdded = true;
+            imageProfile.setImageURI(imageUri);
+
+        }
+    }
+
+    private void uploadImage(){
+        StorageRef.child(uid+"jpg").putFile(imageUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                StorageRef.child(uid+"jpg").getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                    @Override
+                    public void onSuccess(Uri uri) {
+                        HashMap hashMap = new HashMap();
+                        hashMap.put("image",uri.toString());
+
+                        userDataRef.child(uid).updateChildren(hashMap).addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void unused) {
+                                Log.d("TAG","DATA UPLOADED");
+                            }
+                        });
+                    }
+                });
+            }
+
+        });
+    }
 
 }
