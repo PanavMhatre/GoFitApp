@@ -84,6 +84,94 @@ public class AddFriendGroupChat extends AppCompatActivity {
         });
 
     }
+    private void DisplayAllFriends() {
+        FirebaseRecyclerOptions<UserDataRecView> firebaseRecyclerOptions = new FirebaseRecyclerOptions.Builder<UserDataRecView>().setQuery(FriendReference,UserDataRecView.class).build();
+        FirebaseRecyclerAdapter<UserDataRecView, CurrentFriendsActivity.FriendsViewHolder> firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<UserDataRecView, CurrentFriendsActivity.FriendsViewHolder>(firebaseRecyclerOptions) {
+            @Override
+            protected void onBindViewHolder(@NonNull CurrentFriendsActivity.FriendsViewHolder holder, int position, @NonNull UserDataRecView model) {
+                holder.email.setVisibility(View.INVISIBLE);
+
+                String userIds = getRef(position).getKey();
+
+                UserReference.child(userIds).addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if(snapshot.exists()){
+                            String name = snapshot.child("name").getValue().toString();
+                            String image = snapshot.child("image").getValue().toString();
+                            if(!image.equals("")){
+                                Picasso.get().load(image).into(holder.profile);
+                            }else{
+                                holder.profile.setImageResource(R.drawable.profile);
+                            }
+                            holder.name.setText(name);
+
+                                holder.button.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        if(onCLicked){
+                                            GroupReference.child(userIds).child(push_id).child("Information").removeValue();
+                                            holder.button.setText("Add");
+                                            holder.button.setBackgroundColor(getResources().getColor(R.color.log_blue));
+                                            onCLicked = false;
+                                        }else{
+                                            GroupReference.child(userIds).child(push_id).child("Information").child("name").setValue(name_group);
+                                            GroupReference.child(userIds).child(push_id).child("Information").child("image").setValue(imageURL);
+                                            holder.button.setText("Remove");
+                                            holder.button.setBackgroundColor(Color.RED);
+                                            onCLicked = true;
+                                        }
+                                    }
+
+                                });
+
+
+
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+            }
+
+            @NonNull
+            @Override
+            public CurrentFriendsActivity.FriendsViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.row_users,parent,false);
+                return new CurrentFriendsActivity.FriendsViewHolder(view);
+            }
+        };
+
+        firebaseRecyclerAdapter.startListening();
+        Friends_List.setAdapter(firebaseRecyclerAdapter);
+    }
+
+    public static class FriendsViewHolder extends RecyclerView.ViewHolder{
+
+        CircleImageView profile;
+        TextView name,email;
+        Button button;
+        CardView layout;
+        View mView;
+
+        public FriendsViewHolder(@NonNull View itemView) {
+            super(itemView);
+
+            mView = itemView;
+
+            profile = itemView.findViewById(R.id.profileImageRec);
+            name = itemView.findViewById(R.id.nameRecView);
+            email = itemView.findViewById(R.id.emailRecView);
+            button = itemView.findViewById(R.id.addBtn);
+            layout = itemView.findViewById(R.id.layout);
+        }
+    }
+
+
+
 
   
 
