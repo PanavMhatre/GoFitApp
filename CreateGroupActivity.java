@@ -138,8 +138,58 @@ public class CreateGroupActivity extends AppCompatActivity {
 
 
 
+    }
+
+    private void ChangeSystemElements() {
+        ImageView leftIcon = findViewById(R.id.backIcon);
+        TextView text = findViewById(R.id.activityText);
+        leftIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(),GroupActivity.class);
+                startActivity(intent);
+            }
+        });
+        text.setText("New Group");
+        if(Build.VERSION.SDK_INT>=21){
+            Window window = this.getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.setStatusBarColor(this.getResources().getColor(R.color.log_blue));
+        }
 
     }
+
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==REQUEST_CODE_IMAGE&&data!=null){
+            imageUri=data.getData();
+            isImageAdded = true;
+            Log.d("TAG","IMAGE URI ADDED");
+            groupImage.setImageURI(imageUri);
+
+        }
+    }
+
+    private void uploadImage(){
+        Log.d("TAG","ABOUT TO UPLOAD TO STORAGE");
+        StorageRef.child(push_key+"jpg").putFile(imageUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Log.d("TAG","DATA URI ABOUT TO GET");
+                StorageRef.child(push_key+"jpg").getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                    @Override
+                    public void onSuccess(Uri uri) {
+                        imageURL = uri.toString();
+                        Log.d("TAG",imageURL);
+                    }
+                });
+            }
+
+        });
+    }
+
+
 
     
 }
